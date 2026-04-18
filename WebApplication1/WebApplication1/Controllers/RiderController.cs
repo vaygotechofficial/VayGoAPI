@@ -1,12 +1,12 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using WebApplication1.Models;
+using VaygoTech.Models;
 
-namespace WebApplication1.Controllers
+namespace VaygoTech.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class RiderController : ControllerBase
+    public class RiderController : BaseController
     {
         [HttpPost("register")]
         public IActionResult Register(User user)

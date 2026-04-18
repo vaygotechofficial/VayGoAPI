@@ -1,9 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using WebApplication1.Models;
+using VaygoTech.Models;
 
 [Route("api/user")]
 [ApiController]
-public class UserController : ControllerBase
+public class UserController : BaseController
 {
     private readonly UserService _userService;
 
@@ -12,19 +12,19 @@ public class UserController : ControllerBase
         _userService = userService;
     }
 
-    // ✅ GET ALL USERS
-    [HttpGet]
-    public IActionResult GetAll()
+    [HttpGet("GetAllUsers")]
+    public async Task<IActionResult> GetAll()
     {
-        var users = _userService.GetAllUsers();
+        var users = await _userService.GetAllUsers(); 
+
         return Ok(users);
     }
 
-    // ✅ GET USER BY ID
-    [HttpGet("{GetById}")]
-    public IActionResult GetById(int id)
+  
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetById(int id)
     {
-        var user = _userService.GetUserById(id);
+        var user = await _userService.GetUserById(id);
 
         if (user == null)
             return NotFound("User not found");
