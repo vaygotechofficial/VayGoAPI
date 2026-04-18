@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using WebApplication1.Models;
+using VaygoTech.Models;
 
-namespace WebApplication1.Data
+namespace VaygoTech.Data
 {
     public class AppDbContext : DbContext
     {

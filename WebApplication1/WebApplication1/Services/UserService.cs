@@ -1,7 +1,8 @@
-﻿using WebApplication1.Data;
-using WebApplication1.Models;
+﻿using VaygoTech.Data;
+using VaygoTech.Models;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.EntityFrameworkCore;
 
 public class UserService
 {
@@ -12,15 +13,44 @@ public class UserService
         _context = context;
     }
 
-    // GET ALL USERS
-    public List<User> GetAllUsers()
+    public async Task<List<User>> GetAllUsers()
     {
-        return _context.Users.ToList();
+        try
+        {
+            return await _context.Users
+                .AsNoTracking()
+                .ToListAsync();
+        }
+        catch (Exception)
+        {
+            return new List<User>();
+        }
     }
 
-    // GET USER BY ID
-    public User GetUserById(int id)
+    public async Task<User> GetUserById(int id)
     {
-        return _context.Users.FirstOrDefault(x => x.Id == id);
+        try
+        {
+            return await _context.Users
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.Id == id);
+        }
+        catch (Exception)
+        {
+            return null;
+        }
+    }
+
+    public async Task<User> Authenticate(string email, string password)
+    {
+        try
+        {
+            return await _context.Users
+                .FirstOrDefaultAsync(x => x.Email == email && x.Password == password);
+        }
+        catch (Exception)
+        {
+            return null;
+        }
     }
 }
