@@ -1,67 +1,41 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
-using VaygoTech.Models;
+using VaygoTech.DTOs;
+using VaygoTech.Services;
 
 [Route("api/auth")]
 [ApiController]
-public class AuthController : BaseController
+[AllowAnonymous]
+public class AuthController : ControllerBase
 {
-    private readonly UserService _userService;
-    private readonly IConfiguration _config;
+    private readonly AuthService _authService;
 
-    public AuthController(UserService userService, IConfiguration config)
+    public AuthController(AuthService authService)
     {
-        _userService = userService;
-        _config = config;
+        _authService = authService;
     }
 
-    [AllowAnonymous]
-    [HttpPost("login")]
-    public async Task<IActionResult> Login(LoginRequest request)
+    /// <summary>
+    /// Send OTP to mobile number. userType: user | driver
+    /// </summary>
+    [HttpPost("send-otp")]
+    public async Task<IActionResult> SendOtp([FromBody] SendOtpRequest request)
     {
-        var user = await _userService.Authenticate(request.Email, request.Password);
-
-        if (user == null)
-            return Unauthorized("Invalid email or password");
-
-        var token = GenerateToken(user);
-
-        return Ok(new
-        {
-            token,
-            user.Id,
-            user.Name,
-            user.Email,
-            user.UserType
-        });
+        var (success, message) = await _authService.SendOtpAsync(request);
+        return success ? Ok(new { message }) : BadRequest(new { message });
     }
 
-    private string GenerateToken(User user)
+    /// <summary>
+    /// Verify OTP and receive JWT token. userType: user | driver
+    /// </summary>
+    [HttpPost("verify-otp")]
+    public async Task<IActionResult> VerifyOtp([FromBody] VerifyOtpRequest request)
     {
-        var keyString = _config["Jwt:Key"];
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(keyString));
+        var (success, token, userData, message) = await _authService.VerifyOtpAsync(request);
 
-        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+        if (!success)
+            return BadRequest(new { message });
 
-        var claims = new[]
-        {
-            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-            new Claim(ClaimTypes.Email, user.Email),
-            new Claim(ClaimTypes.Role, user.UserType)
-        };
-
-        var token = new JwtSecurityToken(
-            issuer: _config["Jwt:Issuer"],
-            audience: _config["Jwt:Audience"],
-            claims: claims,
-            expires: DateTime.Now.AddHours(2),
-            signingCredentials: creds
-        );
-
-        return new JwtSecurityTokenHandler().WriteToken(token);
+        return Ok(new { token, userData, message });
     }
 }

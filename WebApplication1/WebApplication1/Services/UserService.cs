@@ -1,56 +1,40 @@
-﻿using VaygoTech.Data;
-using VaygoTech.Models;
-using System.Collections.Generic;
-using System.Linq;
 using Microsoft.EntityFrameworkCore;
+using VaygoTech.Data;
+using VaygoTech.DTOs;
+using VaygoTech.Models;
 
-public class UserService
+namespace VaygoTech.Services
 {
-    private readonly AppDbContext _context;
-
-    public UserService(AppDbContext context)
+    public class UserService
     {
-        _context = context;
-    }
+        private readonly AppDbContext _context;
 
-    public async Task<List<User>> GetAllUsers()
-    {
-        try
+        public UserService(AppDbContext context)
         {
-            return await _context.Users
-                .AsNoTracking()
-                .ToListAsync();
+            _context = context;
         }
-        catch (Exception)
-        {
-            return new List<User>();
-        }
-    }
 
-    public async Task<User> GetUserById(int id)
-    {
-        try
+        public async Task<User?> GetProfileAsync(int userId)
         {
-            return await _context.Users
-                .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.Id == id);
+            return await _context.Users.AsNoTracking()
+                .FirstOrDefaultAsync(u => u.UserId == userId);
         }
-        catch (Exception)
-        {
-            return null;
-        }
-    }
 
-    public async Task<User> Authenticate(string email, string password)
-    {
-        try
+        public async Task<(bool Success, string Message)> UpdateProfileAsync(int userId, UpdateProfileRequest request)
         {
-            return await _context.Users
-                .FirstOrDefaultAsync(x => x.Email == email && x.Password == password);
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.UserId == userId);
+            if (user == null)
+                return (false, "User not found");
+
+            user.FullName = request.FullName;
+            user.Email    = request.Email;
+            await _context.SaveChangesAsync();
+            return (true, "Profile updated successfully");
         }
-        catch (Exception)
+
+        public async Task<List<User>> GetAllUsersAsync()
         {
-            return null;
+            return await _context.Users.AsNoTracking().ToListAsync();
         }
     }
 }

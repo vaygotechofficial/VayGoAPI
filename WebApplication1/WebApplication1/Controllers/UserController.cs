@@ -1,8 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using VaygoTech.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using VaygoTech.DTOs;
+using VaygoTech.Services;
 
 [Route("api/user")]
-[ApiController]
 public class UserController : BaseController
 {
     private readonly UserService _userService;
@@ -12,23 +13,19 @@ public class UserController : BaseController
         _userService = userService;
     }
 
-    [HttpGet("GetAllUsers")]
-    public async Task<IActionResult> GetAll()
+    [HttpGet("profile")]
+    //[Authorize(Roles = "user,admin")]
+    public async Task<IActionResult> GetProfile()
     {
-        var users = await _userService.GetAllUsers(); 
-
-        return Ok(users);
+        var profile = await _userService.GetProfileAsync(GetCurrentUserId());
+        return profile == null ? NotFound() : Ok(profile);
     }
 
-  
-    [HttpGet("{id}")]
-    public async Task<IActionResult> GetById(int id)
+    [HttpPut("update-profile")]
+    //[Authorize(Roles = "user,admin")]
+    public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileRequest request)
     {
-        var user = await _userService.GetUserById(id);
-
-        if (user == null)
-            return NotFound("User not found");
-
-        return Ok(user);
+        var (success, message) = await _userService.UpdateProfileAsync(GetCurrentUserId(), request);
+        return success ? Ok(new { message }) : BadRequest(new { message });
     }
 }
