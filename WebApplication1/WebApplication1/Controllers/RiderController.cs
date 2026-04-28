@@ -17,17 +17,36 @@ public class RiderController : BaseController
     /// Step 1: Register/update driver profile
     /// </summary>
     [HttpPost("register")]
-   // [Authorize(Roles = "driver")]
-    public async Task<IActionResult> Register([FromBody] RiderRegisterRequest request)
-    {
-        var (success, message, data) = await _riderService.RegisterAsync(request);
-        return success ? Ok(new { message, data }) : BadRequest(new { message });
-    }
+	// [Authorize(Roles = "driver")]
+	public async Task<IActionResult> Register([FromBody] RiderRegisterRequest request)
+	{
+		try
+		{
+			var (success, message, data) = await _riderService.RegisterAsync(request);
 
-    /// <summary>
-    /// Step 2: Upload Aadhaar, DL, and Vehicle documents
-    /// </summary>
-    [HttpPost("upload-documents")]
+			return Ok(new
+			{
+				success,
+				message,
+				data
+			});
+		}
+		catch (Exception ex)
+		{
+			// log error if needed
+			return Ok(new
+			{
+				success = false,
+				message = "Something went wrong",
+				error = ex.Message
+			});
+		}
+	}
+
+	/// <summary>
+	/// Step 2: Upload Aadhaar, DL, and Vehicle documents
+	/// </summary>
+	[HttpPost("upload-documents")]
     //[Authorize(Roles = "driver")]
     public async Task<IActionResult> UploadDocuments([FromBody] UploadDocumentsRequest request)
     {

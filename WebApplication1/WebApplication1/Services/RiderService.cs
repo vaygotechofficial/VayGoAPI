@@ -22,15 +22,12 @@ namespace VaygoTech.Services
             var existing = await _context.Drivers
                 .FirstOrDefaultAsync(d => d.MobileNumber == request.MobileNumber);
 
-            if (existing != null)
-            {
-                // Update name if already registered
-                existing.FullName = request.FullName;
-                await _context.SaveChangesAsync();
-                return (true, "Profile updated", new { existing.DriverId, existing.FullName, existing.MobileNumber });
-            }
+			if (existing != null)
+			{
+				return (false, "Mobile number already registered", null);
+			}
 
-            var driver = new Driver
+			var driver = new Driver
             {
                 FullName           = request.FullName,
                 MobileNumber       = request.MobileNumber,
